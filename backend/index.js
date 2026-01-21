@@ -14,15 +14,15 @@ app.get("/", (req, res) => {
   });
 });
 
-/**
- * DOWNLOAD → REDIRECT (NO STREAM)
- */
 app.get("/download", (req, res) => {
   const { url } = req.query;
   if (!url) return res.status(400).send("URL required");
 
-  // 🔥 BEST yt-dlp FORMAT (IMPORTANT)
-  const cmd = `yt-dlp -f "bv*+ba/b" -g "${url}"`;
+  const cmd = `yt-dlp \
+    -f "bv*+ba/b" \
+    --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+    --add-header "Referer:https://www.tiktok.com/" \
+    -g "${url}"`;
 
   exec(cmd, (err, stdout, stderr) => {
     if (err || !stdout) {
@@ -30,10 +30,9 @@ app.get("/download", (req, res) => {
       return res.status(500).send("Failed to download TikTok video");
     }
 
-    // yt-dlp may return multiple URLs → take first
     const videoUrl = stdout.trim().split("\n")[0];
 
-    // ✅ REDIRECT browser to TikTok CDN
+    // ✅ Redirect with valid headers handled by yt-dlp
     res.redirect(videoUrl);
   });
 });
