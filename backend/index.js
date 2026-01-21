@@ -6,7 +6,11 @@ import pkg from "@tobyg74/tiktok-api-dl";
 const { TiktokDL } = pkg;
 
 const app = express();
-const PORT = 3000;
+
+/**
+ * ✅ IMPORTANT FOR RAILWAY
+ */
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -23,8 +27,6 @@ app.get("/", (req, res) => {
 
 /**
  * Download API
- * Example:
- * /download?url=https://www.tiktok.com/@user/video/xxxx
  */
 app.get("/download", async (req, res) => {
   const { url } = req.query;
@@ -46,11 +48,14 @@ app.get("/download", async (req, res) => {
       });
     }
 
+    /**
+     * ✅ Dynamic base URL (local OR railway)
+     */
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+
     res.json({
       success: true,
-      streamUrl: `http://localhost:${PORT}/stream?video=${encodeURIComponent(
-        videoUrl
-      )}`
+      streamUrl: `${baseUrl}/stream?video=${encodeURIComponent(videoUrl)}`
     });
 
   } catch (err) {
@@ -62,7 +67,7 @@ app.get("/download", async (req, res) => {
 });
 
 /**
- * Stream mp4 to browser (force download)
+ * Stream mp4 to browser
  */
 app.get("/stream", async (req, res) => {
   const { video } = req.query;
@@ -88,6 +93,9 @@ app.get("/stream", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+/**
+ * ✅ MUST bind 0.0.0.0 for Railway
+ */
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Backend running on port ${PORT}`);
 });
